@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizUp!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #72EDF2 10%, #5151E5 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+    }
+    .app {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 600px;
+    }
+    .header {
+      font-size: 2em;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .quiz-list {
+      list-style: none;
+      padding: 0;
+      text-align: center;
+    }
+    .quiz-list li {
+      background: #5151E5;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .quiz-list li:hover {
+      background: #72EDF2;
+    }
+    #quiz-questions {
+      text-align: center;
+    }
+    #quiz-questions h2 {
+      margin-bottom: 20px;
+    }
+    #quiz-questions ul {
+      list-style: none;
+      padding: 0;
+    }
+    #quiz-questions li {
+      margin: 10px 0;
+    }
+    #quiz-questions button {
+      background: #5151E5;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #quiz-questions button:hover {
+      background: #72EDF2;
+    }
+    #result-screen {
+      text-align: center;
+    }
+    #result-screen h2 {
+      margin-bottom: 20px;
+    }
+    #result-screen button {
+      background: #5151E5;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #result-screen button:hover {
+      background: #72EDF2;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="app">
+      <div class="header">QuizUp!</div>
+      <div class="quiz-list" id="quiz-list">
+        <li onclick="startQuiz(1)">History</li>
+        <li onclick="startQuiz(2)">Science</li>
+        <li onclick="startQuiz(3)">Sports</li>
+      </div>
+      <div id="quiz-questions" style="display: none;"></div>
+      <div id="result-screen" style="display: none;"></div>
+    </div>
+  </div>
+  <script>
+    let quizData = {
+      quizzes: [
+        {
+          id: 1,
+          name: "History",
+          questions: [
+            {
+              text: "What was the first dynasty of ancient Egypt?",
+              options: ["Old Kingdom", "Middle Kingdom", "New Kingdom"],
+              correctAnswer: "Old Kingdom",
+            },
+            {
+              text: "Who was the first president of the United States?",
+              options: ["George Washington", "Thomas Jefferson", "Abraham Lincoln"],
+              correctAnswer: "George Washington",
+            },
+          ],
+        },
+        {
+          id: 2,
+          name: "Science",
+          questions: [
+            {
+              text: "What is the largest planet in our solar system?",
+              options: ["Earth", "Saturn", "Jupiter"],
+              correctAnswer: "Jupiter",
+            },
+            {
+              text: "Who is the father of evolution?",
+              options: ["Charles Darwin", "Galileo Galilei", "Isaac Newton"],
+              correctAnswer: "Charles Darwin",
+            },
+          ],
+        },
+        {
+          id: 3,
+          name: "Sports",
+          questions: [
+            {
+              text: "Which team won the first FIFA World Cup?",
+              options: ["Uruguay", "Argentina", "Brazil"],
+              correctAnswer: "Uruguay",
+            },
+            {
+              text: "Who is the all-time leading scorer in the NBA?",
+              options: ["Michael Jordan", "Kareem Abdul-Jabbar", "LeBron James"],
+              correctAnswer: "Kareem Abdul-Jabbar",
+            },
+          ],
+        },
+      ],
+      currentQuiz: null,
+      currentQuestion: 0,
+      score: 0,
+    };
+
+    function startQuiz(id) {
+      quizData.currentQuiz = quizData.quizzes.find((quiz) => quiz.id === id);
+      quizData.currentQuestion = 0;
+      quizData.score = 0;
+      document.getElementById('quiz-list').style.display = 'none';
+      renderQuizQuestions();
+    }
+
+    function submitAnswer(answer) {
+      const correctAnswer = quizData.currentQuiz.questions[quizData.currentQuestion].correctAnswer;
+      if (answer === correctAnswer) {
+        quizData.score++;
+      }
+      quizData.currentQuestion++;
+      if (quizData.currentQuestion < quizData.currentQuiz.questions.length) {
+        renderQuizQuestions();
+      } else {
+        showResults();
+      }
+    }
+
+    function renderQuizQuestions() {
+      const quizQuestions = document.getElementById("quiz-questions");
+      quizQuestions.innerHTML = "";
+      const currentQuiz = quizData.currentQuiz;
+      const currentQuestion = currentQuiz.questions[quizData.currentQuestion];
+      const questionElement = document.createElement("div");
+      questionElement.innerHTML = `
+        <h2>${currentQuestion.text}</h2>
+        <ul>
+          ${currentQuestion.options.map((option) => `<li><button onclick="submitAnswer('${option}')">${option}</button></li>`).join("")}
+        </ul>
+      `;
+      quizQuestions.appendChild(questionElement);
+      quizQuestions.style.display = 'block';
+    }
+
+    function showResults() {
+      const resultScreen = document.getElementById("result-screen");
+      resultScreen.innerHTML = `
+        <h2>Your Score: ${quizData.score}/${quizData.currentQuiz.questions.length}</h2>
+        <button onclick="restartQuiz()">Back to Quiz List</button>
+      `;
+      document.getElementById("quiz-questions").style.display = 'none';
+      resultScreen.style.display = 'block';
+    }
+
+    function restartQuiz() {
+      document.getElementById("result-screen").style.display = 'none';
+      document.getElementById("quiz-list").style.display = 'block';
+    }
+  </script>
+</body>
+</html>
