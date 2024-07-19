@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, rgba(128,0,128,1) 0%, rgba(0,0,0,1) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(128, 0, 128, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #fff;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        button {
+            background: #8e44ad;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2c3e50;
+        }
+
+        #task-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .task-item.completed {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-actions button {
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .task-actions .edit-button {
+            background: #ffd700;
+            color: white;
+        }
+
+        .task-actions .delete-button {
+            background: #ff6347;
+            color: white;
+        }
+
+        .task-actions .complete-button {
+            background: #32cd32;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <div class="form-container">
+            <input type="text" id="task-title" placeholder="Task Title" required>
+            <input type="text" id="task-desc" placeholder="Task Description">
+            <input type="date" id="task-due-date">
+            <select id="task-priority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <button id="add-task-button">Add Task</button>
+        </div>
+        <ul id="task-list"></ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const taskTitleInput = document.getElementById('task-title');
+            const taskDescInput = document.getElementById('task-desc');
+            const taskDueDateInput = document.getElementById('task-due-date');
+            const taskPrioritySelect = document.getElementById('task-priority');
+            const addTaskButton = document.getElementById('add-task-button');
+            const taskList = document.getElementById('task-list');
+
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement('li');
+                    taskItem.classList.add('task-item');
+                    if (task.completed) {
+                        taskItem.classList.add('completed');
+                    }
+
+                    const taskContent = document.createElement('div');
+                    taskContent.innerHTML = `
+                        <strong>${task.title}</strong> <br>
+                        ${task.description ? task.description + '<br>' : ''}
+                        Due: ${task.dueDate} | Priority: ${task.priority}
+                    `;
+                    taskItem.appendChild(taskContent);
+
+                    const taskActions = document.createElement('div');
+                    taskActions.classList.add('task-actions');
+
+                    const editButton = document.createElement('button');
+                    editButton.classList.add('edit-button');
+                    editButton.textContent = 'Edit';
+                    editButton.addEventListener('click', () => editTask(index));
+                    taskActions.appendChild(editButton);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('delete-button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => deleteTask(index));
+                    taskActions.appendChild(deleteButton);
+
+                    const completeButton = document.createElement('button');
+                    completeButton.classList.add('complete-button');
+                    completeButton.textContent = task.completed ? 'Unmark' : 'Complete';
+                    completeButton.addEventListener('click', () => toggleTaskCompletion(index));
+                    taskActions.appendChild(completeButton);
+
+                    taskItem.appendChild(taskActions);
+
+                    taskList.appendChild(taskItem);
+                });
+            }
+
+            function addTask() {
+                const title = taskTitleInput.value;
+                const description = taskDescInput.value;
+                const dueDate = taskDueDateInput.value;
+                const priority = taskPrioritySelect.value;
+
+                if (title === '') {
+                    alert('Task title is required.');
+                    return;
+                }
+
+                tasks.push({ title, description, dueDate, priority, completed: false });
+                saveTasks();
+                renderTasks();
+                taskTitleInput.value = '';
+                taskDescInput.value = '';
+                taskDueDateInput.value = '';
+                taskPrioritySelect.value = 'low';
+            }
+
+            function editTask(index) {
+                const task = tasks[index];
+                const newTitle = prompt('Edit task title:', task.title);
+                const newDesc = prompt('Edit task description:', task.description);
+                const newDueDate = prompt('Edit task due date:', task.dueDate);
+                const newPriority = prompt('Edit task priority:', task.priority);
+
+                if (newTitle) task.title = newTitle;
+                if (newDesc) task.description = newDesc;
+                if (newDueDate) task.dueDate = newDueDate;
+                if (newPriority) task.priority = newPriority;
+
+                saveTasks();
+                renderTasks();
+            }
+
+            function deleteTask(index) {
+                tasks.splice(index, 1);
+                saveTasks();
+                renderTasks();
+            }
+
+            function toggleTaskCompletion(index) {
+                tasks[index].completed = !tasks[index].completed;
+                saveTasks();
+                renderTasks();
+            }
+
+            addTaskButton.addEventListener('click', addTask);
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
